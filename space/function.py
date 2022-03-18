@@ -20,9 +20,9 @@ import torch_geometric.transforms as T
 from torch_geometric.data import Data
 
 
-from model import SPACE_Graph, SPACE_Gene
-from train import train_SPACE_Graph, train_SPACE_Gene
-from utils import graph_construction
+from .model import SPACE_Graph, SPACE_Gene
+from .train import train_SPACE_Graph, train_SPACE_Gene
+from .utils import graph_construction
 
 
 
