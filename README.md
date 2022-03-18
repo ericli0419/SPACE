@@ -5,7 +5,7 @@
 ## Installation  	
 #### install from GitHub
 
-	git clone git://github.com/ericli0419/SPACE.git
+	git clone https://github.com/ericli0419/SPACE.git
 	cd SPACE
 	python setup.py install
 
