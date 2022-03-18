@@ -10,7 +10,7 @@ import torch.nn as nn
 from torch.nn import init, Sequential, Linear, ReLU, BatchNorm1d, Dropout, Sigmoid, LeakyReLU
 from torch_geometric.nn import GAE, InnerProductDecoder
 from torch_geometric.utils import (negative_sampling, remove_self_loops, add_self_loops)
-from layer import GAT_Encoder
+from .layer import GAT_Encoder
 
 
 EPS = 1e-15
