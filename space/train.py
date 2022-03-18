@@ -11,7 +11,7 @@ from torch.autograd import Variable
 import numpy as np
 from tqdm.auto import tqdm
 
-from loss import compute_mmd, mse_loss
+from .loss import compute_mmd, mse_loss
 
         
 
