@@ -36,7 +36,7 @@ class SPACE_Graph(GAE):
                                       Dropout(0.1),
                                       Linear(in_features=128, out_features=self.encoder.in_channels),
                                       ReLU())
-        self.reset_parameters()
+        # self.reset_parameters()
 
     
     def encode(self, *args, **kwargs):
