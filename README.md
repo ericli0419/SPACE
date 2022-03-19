@@ -1,4 +1,4 @@
-[![Stars](https://img.shields.io/github/stars/ericli0419/space?logo=GitHub&color=yellow)](https://github.com/ericli0419/SPACE)
+[![Stars](https://img.shields.io/github/stars/ericli0419/SPACE?logo=GitHub&color=yellow)](https://github.com/ericli0419/SPACE)
 
 # **SP**atial transcriptomics **A**nalysis via **C**ell **E**mbedding
 
