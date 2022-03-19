@@ -21,7 +21,6 @@ class SPACE_Graph(GAE):
         super(SPACE_Graph, self).__init__(encoder, decoder)
         
         self.decoder = InnerProductDecoder()
-        self.reset_parameters()
         
         if normalize:
             self.decoder_x = Sequential(Linear(in_features=self.encoder.latent_dim, out_features=128),
@@ -37,6 +36,7 @@ class SPACE_Graph(GAE):
                                       Dropout(0.1),
                                       Linear(in_features=128, out_features=self.encoder.in_channels),
                                       ReLU())
+        self.reset_parameters()
 
     
     def encode(self, *args, **kwargs):
