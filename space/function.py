@@ -5,6 +5,7 @@ Created on Sun Mar 13 16:21:44 2022
 
 @author: liyuzhe
 """
+import os
 import random
 import anndata
 import pandas as pd
@@ -19,7 +20,7 @@ import torch_geometric
 import torch_geometric.transforms as T
 from torch_geometric.data import Data
 
-
+from .layer import GAT_Encoder
 from .model import SPACE_Graph, SPACE_Gene
 from .train import train_SPACE_Graph, train_SPACE_Gene
 from .utils import graph_construction
@@ -96,6 +97,7 @@ def SPACE(adata,k=20,normalize=False,seed=42,GPU=0,epoch=2000,lr=0.005,patience=
 
  
     if not normalize:
+        os.makedirs(outdir, exist_ok=True)
         
         print('Construct Graph')
         graph_dict = graph_construction(adata.obsm['spatial'], adata.shape[0],k=k)
@@ -117,8 +119,15 @@ def SPACE(adata,k=20,normalize=False,seed=42,GPU=0,epoch=2000,lr=0.005,patience=
         train_data, val_data, test_data = transform(data_obj) 
         num_features = data_obj.num_features
         print('Load SPACE Graph model')
-        model = SPACE_Graph(feature_dim=num_features,normalize=normalize)
-        print('Trainn SPACE Graph model')
+        encoder = GAT_Encoder(
+            in_channels=num_features,
+            num_heads={'first':6,'second':6,'mean':6,'std':6},
+            hidden_dims=[128,128],
+            dropout=[0.3,0.3,0.3,0.3],
+            concat={'first': True, 'second': True})
+        model = SPACE_Graph(encoder= encoder,decoder=None,normalize=normalize)
+        print(model) 
+        print('Train SPACE Graph model')
         device=train_SPACE_Graph(model, train_data, epoch=epoch,lr=lr, patience=patience,GPU=GPU, seed=seed,a=0.05,loss_type='MSE',
                                  outdir= outdir)
         
@@ -143,7 +152,7 @@ def SPACE(adata,k=20,normalize=False,seed=42,GPU=0,epoch=2000,lr=0.005,patience=
         sc.tl.umap(adata,random_state=seed, neighbors_key='SPACE')
     
     elif normalize:
-        
+        os.makedirs(outdir, exist_ok=True)
         print('Construct Graph')
         graph_dict = graph_construction(adata.obsm['spatial'], adata.shape[0],k=k)
         adj=graph_dict.toarray()
@@ -165,8 +174,15 @@ def SPACE(adata,k=20,normalize=False,seed=42,GPU=0,epoch=2000,lr=0.005,patience=
         train_data, val_data, test_data = transform(data_obj) 
         num_features = data_obj.num_features
         print('Load SPACE Graph model')
-        model = SPACE_Graph(feature_dim=num_features,normalize=normalize)
-        print('Trainn SPACE Graph model')
+        encoder = GAT_Encoder(
+            in_channels=num_features,
+            num_heads={'first':6,'second':6,'mean':6,'std':6},
+            hidden_dims=[128,128],
+            dropout=[0.3,0.3,0.3,0.3],
+            concat={'first': True, 'second': True})
+        model = SPACE_Graph(encoder= encoder,decoder=None,normalize=normalize)
+        print(model) 
+        print('Train SPACE Graph model')
         device=train_SPACE_Graph(model, train_data, epoch=epoch,lr=lr, patience=patience, GPU=GPU, seed=seed, a=0.5, loss_type='BCE',
                                  outdir= outdir)
         
@@ -204,7 +220,7 @@ def SPACE_Cell_Com(adata, cluster, n_neighs=30,resolution=0.3):
     df=pd.DataFrame(index=adata.obs.index,columns=adata.obs[cluster].cat.categories)
     for i in range(len(adj)):
         tmp=adata[adj[i].nonzero()]
-        df_tmp=tmp.obs.refine_class.value_counts(normalize=False)
+        df_tmp=tmp.obs[cluster].value_counts(normalize=False)
         df.iloc[i][df_tmp.index]=df_tmp
     df=df.fillna(0)
     df_sum=df.sum(axis=1)
@@ -224,22 +240,23 @@ def SPACE_Cell_Com(adata, cluster, n_neighs=30,resolution=0.3):
     
     return adata, adata_cc
   
-  
+
 def SPACE_VAE(adata, epoch=1000, batch_size=64, lr=0.0005, weight_decay=5e-4, patience=20, outdir='./',seed=78,GPU=0,beta=1):
+    os.makedirs(outdir, exist_ok=True)
     cell_df=adata.obs[['cell_community']]
     cell_df.columns=['cell_community']
     
     enc = OneHotEncoder(handle_unknown='ignore')
     enc_df = pd.DataFrame(enc.fit_transform(cell_df[['cell_community']]).toarray())
     cluster = torch.from_numpy(enc_df.values.astype(np.float32))
-    x_dim=adata.shape(1)
-    c_dim=cell_df.shape(1)
+    x_dim=adata.shape[1]
+    c_dim=cluster.shape[1]
     model=SPACE_Gene(x_dim, c_dim)
     data=torch.from_numpy(adata.X.toarray())
-    device=train_SPACE_Gene(model, data, outdir=outdir+'/checkpoint.pt',cluster=cluster,epoch=epoch, batch_size=batch_size, lr=lr, 
+    device=train_SPACE_Gene(model, data, outdir=outdir,cluster=cluster,epoch=epoch, batch_size=batch_size, lr=lr, 
                      weight_decay=weight_decay,patience=patience,GPU=GPU, seed=seed,beta = beta)
     
-    pretrained_dict = torch.load(outdir+'checkpoint.pt', map_location=device)                            
+    pretrained_dict = torch.load(outdir+'/model.pt', map_location=device)                            
     model_dict = model.state_dict() 
     pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict} 
     model_dict.update(pretrained_dict)  
@@ -251,7 +268,7 @@ def SPACE_VAE(adata, epoch=1000, batch_size=64, lr=0.0005, weight_decay=5e-4, pa
     recon_x=model.encodeBatch(data,cluster,out='x') 
     recon_x_=model.encodeBatch(data,cluster,out='x_')
     adata.layers['recon_x']=recon_x.copy()
-    adata.layers['recon_x']=recon_x_.copy()
+    adata.layers['recon_x_']=recon_x_.copy()
     adata.obsm['latent']=latent.copy()
     
     adata.write(outdir+'/adata.h5ad')

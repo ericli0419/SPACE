@@ -13,10 +13,7 @@ from torch_geometric.nn import GATv2Conv
 
 
 class GAT_Encoder(nn.Module):
-    def __init__(self, in_channels,
-                 num_heads={'first':6,'second':6,'mean':6,'std':6}, 
-                 hidden_dims=[128,128], dropout=[0.3,0.3,0.3,0.3], 
-                 concat={'first': True, 'second': True}):
+    def __init__(self, in_channels,num_heads, hidden_dims, dropout, concat):
         super(GAT_Encoder, self).__init__()
         
         self.num_heads = num_heads
@@ -25,7 +22,7 @@ class GAT_Encoder(nn.Module):
         self.conv = GATv2Conv
 
         self.hidden_layer1 = self.conv(
-            in_channels=in_channels, output_dim=hidden_dims[0],
+            in_channels=in_channels, out_channels=hidden_dims[0],
             heads=self.num_heads['first'],
             dropout=dropout[0],
             concat=concat['first'])

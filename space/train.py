@@ -76,7 +76,7 @@ class EarlyStopping:
 
 
 
-def train_SPACE_Graph(model, train_data, outdir, epoch=2000,lr=0.005, a=0.2,b=10,loss_type='MSE',patience=50, GPU=0,seed=9):
+def train_SPACE_Graph(model, train_data, outdir, epoch=2000,lr=0.005, a=0.05,loss_type='MSE',patience=50, GPU=0,seed=9):
     
     np.random.seed(seed)
     if torch.cuda.is_available(): # cuda device
@@ -89,10 +89,10 @@ def train_SPACE_Graph(model, train_data, outdir, epoch=2000,lr=0.005, a=0.2,b=10
     torch.manual_seed(seed)
     model.to(device)
     model.train()
-    epoch_loss = 0.0
     early_stopping = EarlyStopping(patience=patience, checkpoint_file=outdir+'/model.pt')
-    
-    for epoch in tqdm(range(1, epoch)):
+
+    for epoch in tqdm(range(1, epoch+1)):
+        epoch_loss = 0.0
         optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=5e-4)
         epoch_lr=adjust_learning_rate(lr, optimizer, epoch, seperation=50)
             
@@ -105,9 +105,9 @@ def train_SPACE_Graph(model, train_data, outdir, epoch=2000,lr=0.005, a=0.2,b=10
             
         reconstructed_features = model.decoder_x(z)
         if loss_type=='BCE': 
-            feature_loss = torch.nn.functional.binary_cross_entropy(reconstructed_features, x) * b
+            feature_loss = torch.nn.functional.binary_cross_entropy(reconstructed_features, x) * 10
         elif loss_type=='MSE':
-            feature_loss = torch.nn.functional.mse_loss(reconstructed_features, x) * b
+            feature_loss = torch.nn.functional.mse_loss(reconstructed_features, x) * 10
             
         loss += feature_loss
         loss.backward()
@@ -116,10 +116,9 @@ def train_SPACE_Graph(model, train_data, outdir, epoch=2000,lr=0.005, a=0.2,b=10
             
         if epoch%50==0:
             print('====> Epoch: {}, Loss: {:.4f}'.format(epoch, epoch_loss)) 
-            
         early_stopping(epoch_loss, model)
         if early_stopping.early_stop:
-            print('EarlyStopping: run {} iteration'.format(epoch+1))
+            print('EarlyStopping: run {} iteration'.format(epoch))
             break
     
     return device
@@ -145,9 +144,9 @@ def train_SPACE_Gene(model, data, outdir, cluster, epoch, batch_size, lr=0.0005,
     
     dataset = torch.utils.data.TensorDataset(data,cluster)
     
-    early_stopping = EarlyStopping(patience=patience, outdir=outdir+'/model.pt')
+    early_stopping = EarlyStopping(patience=patience, checkpoint_file=outdir+'/model.pt')
     
-    for epoch in tqdm(range(1, epoch)):
+    for epoch in tqdm(range(1, epoch+1)):
         epoch_lr = adjust_learning_rate(lr, optimizer, epoch, seperation=10)
         train_data=DataLoader(dataset,batch_size=batch_size,shuffle=True, drop_last=True)
         for iteration,data_list in enumerate(train_data):
@@ -164,9 +163,9 @@ def train_SPACE_Gene(model, data, outdir, cluster, epoch, batch_size, lr=0.0005,
             mse=mse_loss(recon_x,x)
             loss=mse+beta*mmd 
             loss.backward()      
-            optimizer.step()
-        print('====> Epoch: {}, Loss: {:.4f}'.format(epoch+1,loss.cpu().data.numpy()))
-        early_stopping(loss, model)
+            optimizer.step()  
+        print('====> Epoch: {}, Loss: {:.4f}'.format(epoch,loss.cpu().data.numpy()))
+        early_stopping(loss.cpu().data.numpy(), model)
         if early_stopping.early_stop:
             print('EarlyStopping: run {} iteration'.format(epoch))
             break

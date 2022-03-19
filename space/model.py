@@ -17,10 +17,9 @@ EPS = 1e-15
 
 
 class SPACE_Graph(GAE):
-    def __init__(self, encoder, decoder, feature_dim,normalize=True):
+    def __init__(self, encoder, decoder,normalize=True):
         super(SPACE_Graph, self).__init__(encoder, decoder)
         
-        self.encoder = GAT_Encoder(in_channels=feature_dim)
         self.decoder = InnerProductDecoder()
         self.reset_parameters()
         
@@ -50,8 +49,8 @@ class SPACE_Graph(GAE):
     
     def graph_loss(self, z, pos_edge_index, neg_edge_index=None):
 
-        self.decode = self.decoder(z, pos_edge_index, sigmoid=True)
-        pos_loss = -torch.log(self.decode + EPS).mean()
+        self.decoded = self.decoder(z, pos_edge_index, sigmoid=True)
+        pos_loss = -torch.log(self.decoded + EPS).mean()
 
         # Do not include self-loops in negative samples
         pos_edge_index, _ = remove_self_loops(pos_edge_index)
