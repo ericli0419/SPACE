@@ -10,6 +10,6 @@
 	python setup.py install
 
 SPACE is implemented in [Pytorch](https://pytorch.org/) framework.  
-SPACE can be run on CPU devices, and running SCALEX on GPU devices if available is recommended.   
+SPACE can be run on CPU devices, and running SPACE on GPU devices if available is recommended.   
 
 
