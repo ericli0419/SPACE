@@ -61,7 +61,7 @@ def graph_construction(adj_coo, cell_N, k):
     return adj_org
 
 
-def getNClusters(adata,n_cluster,range_min=0,range_max=3,max_steps=20, method='louvain', key_added=None,neighbors_key=None):
+def getNClusters(adata,n_cluster,range_min=0,range_max=3,max_steps=20, method='louvain', key_added=None,neighbors_key=None, random_state=42):
     """
     Function will test different settings of louvain to obtain the target number of clusters.
     adapted from the function from the Pinello lab. See: https://github.com/pinellolab/scATAC-benchmarking
@@ -76,13 +76,13 @@ def getNClusters(adata,n_cluster,range_min=0,range_max=3,max_steps=20, method='l
         this_resolution = this_min + ((this_max-this_min)/2)
         
         if (method == 'louvain') and (key_added==None):
-            sc.tl.louvain(adata, resolution=this_resolution,neighbors_key=neighbors_key)
+            sc.tl.louvain(adata, resolution=this_resolution,neighbors_key=neighbors_key,random_state=random_state)
         elif method == 'louvain'and isinstance(key_added, str):
-            sc.tl.louvain(adata, resolution=this_resolution, key_added=key_added,neighbors_key=neighbors_key)
+            sc.tl.louvain(adata, resolution=this_resolution, key_added=key_added,neighbors_key=neighbors_key,random_state=random_state)
         elif( method == 'leiden') and (key_added==None):
-            sc.tl.leiden(adata,resolution=this_resolution,neighbors_key=neighbors_key)
+            sc.tl.leiden(adata,resolution=this_resolution,neighbors_key=neighbors_key,random_state=random_state)
         else:
-            sc.tl.leiden(adata,resolution=this_resolution, key_added=key_added,neighbors_key=neighbors_key)
+            sc.tl.leiden(adata,resolution=this_resolution, key_added=key_added,neighbors_key=neighbors_key,random_state=random_state)
     
         
         if key_added==None:
