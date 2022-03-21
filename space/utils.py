@@ -80,7 +80,7 @@ def getNClusters(adata,n_cluster,range_min=0,range_max=3,max_steps=20, method='l
         elif method == 'louvain'and isinstance(key_added, str):
             sc.tl.louvain(adata, resolution=this_resolution, key_added=key_added,neighbors_key=neighbors_key,random_state=random_state)
         elif( method == 'leiden') and (key_added==None):
-            sc.tl.leiden(adata,resolution=this_resolution,neighbors_key=neighbors_key,random_state=randome_state)
+            sc.tl.leiden(adata,resolution=this_resolution,neighbors_key=neighbors_key,random_state=random_state)
         else:
             sc.tl.leiden(adata,resolution=this_resolution, key_added=key_added,neighbors_key=neighbors_key,random_state=random_state)
     
