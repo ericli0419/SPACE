@@ -47,7 +47,7 @@ def SPACE(adata,k=20,alpha=0.05,seed=42,GPU=0,epoch=2000,lr=0.005,patience=50,ou
     epoch
         Max iterations for training. Default: 2000.
     loss_type
-        Loss Function of feature matrix reconstruction loss. 
+        Loss Function of feature matrix reconstruction loss. Default: MSE (BCE was recommanded for Visium data's domain finding). 
     GPU
         Index of GPU to use if GPU is available. Default: 0.
     outdir
