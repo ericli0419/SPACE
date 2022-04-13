@@ -17,12 +17,12 @@ EPS = 1e-15
 
 
 class SPACE_Graph(GAE):
-    def __init__(self, encoder, decoder,normalize=True):
+    def __init__(self, encoder, decoder,loss_type='MSE'):
         super(SPACE_Graph, self).__init__(encoder, decoder)
         
         self.decoder = InnerProductDecoder()
         
-        if normalize:
+        if loss_type == 'BCE':
             self.decoder_x = Sequential(Linear(in_features=self.encoder.latent_dim, out_features=128),
                                       BatchNorm1d(128),
                                       LeakyReLU(),
