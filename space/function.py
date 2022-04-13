@@ -113,7 +113,7 @@ def SPACE(adata,k=20,alpha=0.05,seed=42,GPU=0,epoch=2000,lr=0.005,patience=50,ou
     print('Train SPACE Graph model')
     
     device=train_SPACE_Graph(model, train_data, epoch=epoch,lr=lr, patience=patience,GPU=GPU, seed=seed,a=alpha,loss_type=loss_type,
-                                 outdir= outdir)
+                                 outdir= outdir, verbose=verbose)
 
     pretrained_dict = torch.load(outdir+'/model.pt', map_location=device)                            
     model_dict = model.state_dict()
