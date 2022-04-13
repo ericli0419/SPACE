@@ -115,7 +115,10 @@ def train_SPACE_Graph(model, train_data, outdir, epoch=2000,lr=0.005, a=0.05,los
         epoch_loss += loss.item()
             
         if epoch%50==0:
-            print('====> Epoch: {}, Loss: {:.4f}'.format(epoch, epoch_loss)) 
+            if verbose:
+                print('Epoch {:03d} -- Total epoch loss: {:.4f} -- Feature decoder epoch loss: {:.4f} -- Graph decoder epoch loss: {:.4f} -- epoch lr: {:.4f}'.format(epoch, epoch_loss, feature_loss, graph_loss, epoch_lr))
+            else:
+                print('====> Epoch: {}, Loss: {:.4f}'.format(epoch, epoch_loss)) 
         early_stopping(epoch_loss, model)
         if early_stopping.early_stop:
             print('EarlyStopping: run {} iteration'.format(epoch))
