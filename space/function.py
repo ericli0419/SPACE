@@ -138,7 +138,7 @@ def SPACE(adata,k=20,alpha=0.05,seed=42,GPU=0,epoch=2000,lr=0.005,patience=50,ou
     adata.write(outdir+'/adata.h5ad')   
     return adata
     
-def SPACE_Cell_Com(adata, cluster, n_neighs=30,resolution=0.3):
+def SPACE_Cell_Com(adata, cluster, n_neighs=30,resolution=0.3,n_pcs=40):
     
     sq.gr.spatial_neighbors(adata,n_neighs=n_neighs)
     adj=adata.obsp['spatial_connectivities'].toarray().copy()
@@ -158,7 +158,7 @@ def SPACE_Cell_Com(adata, cluster, n_neighs=30,resolution=0.3):
     adata_cc.raw=adata_cc
     adata.obsm['ccom']=adata_cc.X.copy()
     adata_cc.obsm['spatial']=adata.obsm['spatial'].copy()
-    sc.pp.neighbors(adata_cc, n_neighbors=10, n_pcs=40, use_rep='ccom')
+    sc.pp.neighbors(adata_cc, n_neighbors=10, n_pcs=n_pcs, use_rep='ccom')
     sc.tl.umap(adata_cc)
     sc.tl.leiden(adata_cc,resolution=resolution)
     
