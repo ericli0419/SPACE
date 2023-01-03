@@ -5,6 +5,7 @@ Created on Sun Mar 13 15:09:45 2022
 
 @author: liyuzhe
 """
+import os
 import torch
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
@@ -76,7 +77,7 @@ class EarlyStopping:
 
 
 
-def train_SPACE_Graph(model, train_data, outdir, epoch=2000,lr=0.005, a=0.05,loss_type='MSE',patience=50, GPU=0,seed=9, verbose=False):
+def train_SPACE(model, train_data, outdir, epoch=5000,lr=0.005, a=0.5,loss_type='MSE',patience=50, GPU=0,seed=42, verbose=False):
     
     np.random.seed(seed)
     if torch.cuda.is_available(): # cuda device
@@ -89,9 +90,9 @@ def train_SPACE_Graph(model, train_data, outdir, epoch=2000,lr=0.005, a=0.05,los
     torch.manual_seed(seed)
     model.to(device)
     model.train()
-    early_stopping = EarlyStopping(patience=patience, checkpoint_file=outdir+'/model.pt', verbose=verbose)
+    early_stopping = EarlyStopping(patience=patience, checkpoint_file=os.path.join(outdir,'/model.pt'))
 
-    for epoch in tqdm(range(1, epoch+1)):
+    for epoch in tqdm(range(0, epoch+1)):
         epoch_loss = 0.0
         optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=5e-4)
         epoch_lr=adjust_learning_rate(lr, optimizer, epoch, seperation=50)
@@ -114,62 +115,21 @@ def train_SPACE_Graph(model, train_data, outdir, epoch=2000,lr=0.005, a=0.05,los
         optimizer.step()
         epoch_loss += loss.item()
             
-        if epoch%50==0:
-            if verbose:
-                print('Epoch {:03d} -- Total epoch loss: {:.4f} -- Feature decoder epoch loss: {:.4f} -- Graph decoder epoch loss: {:.4f} -- epoch lr: {:.4f}'.format(epoch, epoch_loss, feature_loss, epoch_loss-feature_loss, epoch_lr))
-            else:
+        # if epoch%50==0:
+        #     if verbose:
+        #         print('Epoch {:03d} -- Total epoch loss: {:.4f} -- Feature decoder epoch loss: {:.4f} -- Graph decoder epoch loss: {:.4f} -- epoch lr: {:.4f}'.format(epoch, epoch_loss, feature_loss, epoch_loss-feature_loss, epoch_lr))
+        #     else:
+        #         print('====> Epoch: {}, Loss: {:.4f}'.format(epoch, epoch_loss)) 
+        # early_stopping(epoch_loss, model)
+        # if early_stopping.early_stop:
+        #     print('EarlyStopping: run {} iteration'.format(epoch))
+        #     break
+        if verbose:
+            if epoch%50==0:
                 print('====> Epoch: {}, Loss: {:.4f}'.format(epoch, epoch_loss)) 
         early_stopping(epoch_loss, model)
         if early_stopping.early_stop:
-            print('EarlyStopping: run {} iteration'.format(epoch))
-            break
-    
-    return device
-
-
-
-def train_SPACE_Gene(model, data, outdir, cluster, epoch, batch_size, lr=0.0005, 
-                     weight_decay=5e-4,patience=10,GPU=0, seed=9,beta = 1):
-    
-    np.random.seed(seed)
-    if torch.cuda.is_available(): # cuda device
-        device='cuda'
-        torch.cuda.set_device(GPU)
-        torch.cuda.manual_seed_all(seed)
-    else:
-        device='cpu'
-    
-    torch.manual_seed(seed)
-    model.to(device)
-      
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay) 
-    model.train()
-    
-    dataset = torch.utils.data.TensorDataset(data,cluster)
-    
-    early_stopping = EarlyStopping(patience=patience, checkpoint_file=outdir+'/model.pt')
-    
-    for epoch in tqdm(range(1, epoch+1)):
-        epoch_lr = adjust_learning_rate(lr, optimizer, epoch, seperation=10)
-        train_data=DataLoader(dataset,batch_size=batch_size,shuffle=True, drop_last=True)
-        for iteration,data_list in enumerate(train_data):
-            x=data_list[0].to(device)
-            c=data_list[1].to(device)
-            optimizer.zero_grad()
-            recon_x = model(x,c)
-            mu, log_var = model.encoder(x)     
-            z = model.reparameterize(mu, log_var)
-            
-            true_samples = Variable(torch.randn(x.shape[0], 10), requires_grad=False)
-            mmd = compute_mmd(true_samples.to(device), z)
-            
-            mse=mse_loss(recon_x,x)
-            loss=mse+beta*mmd 
-            loss.backward()      
-            optimizer.step()  
-        print('====> Epoch: {}, Loss: {:.4f}'.format(epoch,loss.cpu().data.numpy()))
-        early_stopping(loss.cpu().data.numpy(), model)
-        if early_stopping.early_stop:
+            print('====> Epoch: {}, Loss: {:.4f}'.format(epoch, epoch_loss)) 
             print('EarlyStopping: run {} iteration'.format(epoch))
             break
     

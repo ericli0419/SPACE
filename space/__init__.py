@@ -1,5 +1,5 @@
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 __author__ = 'Yuzhe Li'
 __email__ = 'liyuzhezju@gmail.com'
 
-from .function import SPACE, SPACE_Cell_Com, SPACE_VAE
+from .function import SPACE
