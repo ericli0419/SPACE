@@ -6,15 +6,9 @@ Created on Sun Mar 13 15:09:45 2022
 @author: liyuzhe
 """
 import os
-import torch
-from torch.utils.data import DataLoader
-from torch.autograd import Variable
 import numpy as np
+import torch
 from tqdm.auto import tqdm
-
-from .loss import compute_mmd, mse_loss
-
-        
 
 
 def adjust_learning_rate(init_lr, optimizer, iteration,seperation):
@@ -90,7 +84,7 @@ def train_SPACE(model, train_data, outdir, epoch=5000,lr=0.005, a=0.5,loss_type=
     torch.manual_seed(seed)
     model.to(device)
     model.train()
-    early_stopping = EarlyStopping(patience=patience, checkpoint_file=os.path.join(outdir,'/model.pt'))
+    early_stopping = EarlyStopping(patience=patience, checkpoint_file=os.path.join(outdir,'model.pt'))
 
     for epoch in tqdm(range(0, epoch+1)):
         epoch_loss = 0.0

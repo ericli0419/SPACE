@@ -13,9 +13,9 @@ from torch_geometric.utils import (negative_sampling, remove_self_loops, add_sel
 EPS = 1e-15
 
 
-class SPACE(GAE):
+class SPACE_Graph(GAE):
     def __init__(self, encoder, decoder,loss_type='MSE'):
-        super(SPACE, self).__init__(encoder, decoder)
+        super(SPACE_Graph, self).__init__(encoder, decoder)
         
         self.decoder = InnerProductDecoder()
         

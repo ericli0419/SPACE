@@ -19,7 +19,7 @@ import torch_geometric.transforms as T
 from torch_geometric.data import Data
 
 from .layer import GAT_Encoder
-from .model import SPACE
+from .model import SPACE_Graph
 from .train import train_SPACE
 from .utils import graph_construction
 
@@ -107,14 +107,14 @@ def SPACE(adata,k=20,alpha=0.5,seed=42,GPU=0,epoch=5000,lr=0.005,patience=50,out
         hidden_dims=[128,128],
         dropout=[0.3,0.3,0.3,0.3],
         concat={'first': True, 'second': True})
-    model = SPACE(encoder= encoder,decoder=None,loss_type=loss_type)
+    model = SPACE_Graph(encoder= encoder,decoder=None,loss_type=loss_type)
     print(model) 
     print('Train SPACE model')
     
     device=train_SPACE(model, train_data, epoch=epoch, lr=lr, patience=patience, GPU=GPU, seed=seed, a=alpha,loss_type=loss_type, outdir= outdir, verbose=verbose)
     
     # Load model
-    pretrained_dict = torch.load(os.path.join(outdir,'/model.pt'), map_location=device)                            
+    pretrained_dict = torch.load(os.path.join(outdir,'model.pt'), map_location=device)                            
     model_dict = model.state_dict()
     pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
     model_dict.update(pretrained_dict) 
@@ -147,6 +147,6 @@ def SPACE(adata,k=20,alpha=0.5,seed=42,GPU=0,epoch=5000,lr=0.005,patience=50,out
             torch.save(attention_weights, attn_w_filepath)
 
     #Output
-    adata.write(os.path.join(outdir,'/adata.h5ad'))   
+    adata.write(os.path.join(outdir,'adata.h5ad'))   
     return adata
     
