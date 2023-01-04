@@ -42,7 +42,7 @@ def SPACE(adata,k=20,alpha=0.5,seed=42,GPU=0,epoch=5000,lr=0.005,patience=50,out
     patience
         Patience in early stopping. Default: 50.
     epoch
-        Max epoches for training. Default: 5000.
+        Max epochs for training. Default: 5000.
     loss_type
         Loss Function of feature matrix reconstruction loss. Default: MSE (BCE was recommanded for Visium data's domain finding). 
     GPU
