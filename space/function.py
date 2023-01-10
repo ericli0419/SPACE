@@ -25,7 +25,7 @@ from .utils import graph_construction
 
 
 
-def SPACE(adata,k=20,alpha=0.5,seed=42,GPU=0,epoch=5000,lr=0.005,patience=50,outdir='./',loss_type='MSE',save_attn=False,verbose=False):
+def SPACE(adata,k=20,alpha=0.5,seed=42,GPU=0,epoch=5000,lr=0.005,patience=50,outdir='./',loss_type='MSE',save_attn=False,verbose=False,heads=6):
     """
     Single-Cell integrative Analysis via Latent feature Extraction
     
@@ -53,6 +53,8 @@ def SPACE(adata,k=20,alpha=0.5,seed=42,GPU=0,epoch=5000,lr=0.005,patience=50,out
         Save attention weights, True or False. Default: False.
     verbose
         Verbosity, True or False. Default: False.
+    heads
+        Number of attention heads. Default: 6.
     
     
     Returns
@@ -103,7 +105,7 @@ def SPACE(adata,k=20,alpha=0.5,seed=42,GPU=0,epoch=5000,lr=0.005,patience=50,out
     print('Load SPACE model')
     encoder = GAT_Encoder(
         in_channels=num_features,
-        num_heads={'first':6,'second':6,'mean':6,'std':6},
+        num_heads={'first':heads,'second':heads,'mean':heads,'std':heads},
         hidden_dims=[128,128],
         dropout=[0.3,0.3,0.3,0.3],
         concat={'first': True, 'second': True})
