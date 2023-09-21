@@ -102,6 +102,8 @@ def train_SPACE(model, train_data, outdir, epoch=5000,lr=0.005, a=0.5,loss_type=
 
     for epoch in tqdm(range(0, epoch+1)):
         epoch_loss = 0.0
+        loss1 = 0.0
+        loss2 = 0.0
         optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=5e-4)
         epoch_lr=adjust_learning_rate(lr, optimizer, epoch, seperation=50)
             
@@ -122,6 +124,10 @@ def train_SPACE(model, train_data, outdir, epoch=5000,lr=0.005, a=0.5,loss_type=
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
+        
+        loss1 += graph_loss.item()
+        loss2 += feature_loss.item()
+       
             
         # if epoch%50==0:
         #     if verbose:
@@ -137,9 +143,9 @@ def train_SPACE(model, train_data, outdir, epoch=5000,lr=0.005, a=0.5,loss_type=
                 print('====> Epoch: {}, Loss: {:.4f}'.format(epoch, epoch_loss)) 
         early_stopping(epoch_loss, model)
         # plot loss
-        y_loss['feature_loss'].append(feature_loss)
-        y_loss['graph_loss'].append(graph_loss)
-        y_loss['loss'].append(loss)
+        y_loss['feature_loss'].append(loss2)
+        y_loss['graph_loss'].append(loss1)
+        y_loss['loss'].append(epoch_loss)
         x_epoch.append(epoch)
         plt.plot(x_epoch, y_loss['loss'], 'go-', label='train',linewidth=1.5, markersize=4)
         plt.plot(x_epoch, y_loss['graph_loss'], 'ro-', label='MSE1',linewidth=1.5, markersize=4)
