@@ -147,9 +147,9 @@ def train_SPACE(model, train_data, outdir, epoch=5000,lr=0.005, a=0.5,loss_type=
         y_loss['graph_loss'].append(loss1)
         y_loss['loss'].append(epoch_loss)
         x_epoch.append(epoch)
-        plt.plot(x_epoch, y_loss['loss'], 'go-', label='loss',linewidth=1.5, markersize=4)
-        plt.plot(x_epoch, y_loss['graph_loss'], 'ro-', label='graph_loss',linewidth=1.5, markersize=4)
-        plt.plot(x_epoch, y_loss['feature_loss'], 'bo-', label='feature_loss',linewidth=1.5, markersize=4)
+        plt.plot(x_epoch, y_loss['loss'], 'go-', label='loss',linewidth=1, markersize=2)
+        plt.plot(x_epoch, y_loss['graph_loss'], 'ro-', label='graph_loss',linewidth=1, markersize=2)
+        plt.plot(x_epoch, y_loss['feature_loss'], 'bo-', label='feature_loss',linewidth=1, markersize=2)
         if len(x_epoch)==1:
             plt.legend()
         
