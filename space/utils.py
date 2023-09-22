@@ -124,3 +124,84 @@ def load_SPACE_model(adata,k,a,heads,graph_const_method='SPACE',loss_type='MSE',
     
     return feature_loss.cpu().detach().numpy(), graph_loss.cpu().detach().numpy()
 
+def extract_attention(adata,k,a,heads,graph_const_method='SPACE',loss_type='MSE',device='cpu',outdir='./',save_attn=False):
+    print('Construct Graph')
+    if graph_const_method=='SPACE':
+        graph_dict = graph_construction(adata.obsm['spatial'], adata.shape[0],k=k)
+        adj = graph_dict.toarray()
+    elif graph_const_method=='Squidpy':
+        sq.gr.spatial_neighbors(adata, coord_type="generic",n_neighs=k)
+        adj = adata.obsp['spatial_connectivities'].toarray()
+    print('Average links: {:.2f}'.format(np.sum(adj>0)/adj.shape[0]))
+    
+    G = nx.from_numpy_array(adj).to_undirected() 
+    edge_index = (torch_geometric.utils.convert.from_networkx(G)).edge_index
+    
+    if sci.sparse.issparse(adata.X):
+        X_hvg = adata.X.toarray()
+    else:
+        X_hvg = adata.X.copy()
+    
+    if loss_type == 'BCE':
+        scaler = MaxAbsScaler() # MinMaxScaler() 
+        scaled_x = torch.from_numpy(scaler.fit_transform(X_hvg))
+    elif loss_type == 'MSE':
+        scaled_x = torch.from_numpy(X_hvg) 
+    
+    #prepare training data
+    data_obj = Data(edge_index=edge_index, x=scaled_x) 
+    data_obj.num_nodes = X_hvg.shape[0] 
+    data_obj.train_mask = data_obj.val_mask = data_obj.test_mask = data_obj.y = None
+    transform = T.RandomLinkSplit(num_val=0.0, num_test=0.0, is_undirected=True, 
+                                  add_negative_train_samples=False, split_labels=True)
+    train_data, _ , _ = transform(data_obj) 
+    num_features = data_obj.num_features
+    print('Load SPACE model')
+    encoder = GAT_Encoder(
+        in_channels=num_features,
+        num_heads={'first':heads,'second':heads,'mean':heads},
+        hidden_dims=[128,128],
+        dropout=[0.3,0.3],
+        concat={'first': True, 'second': True})
+    model = SPACE_Graph(encoder= encoder,decoder=None,loss_type=loss_type)
+    print(model) 
+    model.to(device)
+    
+    # Load model
+    pretrained_dict = torch.load(os.path.join(outdir,'model.pt'), map_location=device)                            
+    model_dict = model.state_dict()
+    pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
+    model_dict.update(pretrained_dict) 
+    model.load_state_dict(model_dict)
+    model = model.eval()
+
+    x, edge_index = data_obj.x.to(torch.float).to(device), data_obj.edge_index.to(torch.long).to(device)
+    z_nodes, attn_w = model.encode(x, edge_index)
+    
+    if save_attn:
+        for i in range(2):
+            edge_index, attention_weights = attn_w[i]
+            edge_index, attention_weights = edge_index.detach().cpu(), attention_weights.detach().cpu()
+            
+            layer_filename = f'GAT_Layer_{i+1}_edge_index.pt'
+            edges_filepath = os.path.join(outdir, layer_filename)
+            layer_filename = f'GAT_Layer_{i+1}_attention_weights.pt'
+            attn_w_filepath = os.path.join(outdir, layer_filename)
+            
+            torch.save(edge_index, edges_filepath)
+            torch.save(attention_weights, attn_w_filepath)
+    
+    return attn_w
+
+
+def extract_attn_data(edge_index_attn, weights_attn, dim=None):
+    edges = edge_index_attn.T
+    if not dim:
+        w = weights_attn.mean(dim=1)
+    else:
+        w = weights_attn[:, dim]
+    w = w.squeeze()
+    top_values, top_indices = torch.topk(w, len(edges))
+    top_edges = edges[top_indices]
+    
+    return top_edges, top_values
