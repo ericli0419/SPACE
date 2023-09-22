@@ -9,6 +9,10 @@ import scanpy as sc
 import numpy as np
 from scipy.spatial import distance
 import networkx as nx
+import torch
+import torch_geometric
+import torch_geometric.transforms as T
+from torch_geometric.data import Data
 
 
 # Construct adj graph of image-based data 
