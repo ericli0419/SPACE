@@ -7,6 +7,7 @@ Created on Fri Mar 11 20:52:20 2022
 """
 import scanpy as sc
 import numpy as np
+import scipy as sci
 from scipy.spatial import distance
 import networkx as nx
 import torch
