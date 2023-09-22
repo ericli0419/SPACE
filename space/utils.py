@@ -5,6 +5,7 @@ Created on Fri Mar 11 20:52:20 2022
 
 @author: liyuzhe
 """
+import os
 import scanpy as sc
 import numpy as np
 import scipy as sci
